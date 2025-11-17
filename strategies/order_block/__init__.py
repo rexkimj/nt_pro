@@ -11,6 +11,7 @@ Components:
 - CHoCHDetector: Detects Change of Character (trend reversals)
 - FibonacciCalculator: Calculates optimal entry zones
 - OrderBlockStrategy: Main strategy implementation
+- ReportManager: Generates backtest reports with visualizations
 
 Author: Nautilus Trader
 License: MIT
@@ -32,6 +33,14 @@ from .strategy import (
     OrderBlockStrategyConfig,
 )
 
+from .report_generator import (
+    TradeRecord,
+    PerformanceMetrics,
+    PerformanceCalculator,
+    HTMLReportGenerator,
+    ReportManager,
+)
+
 __all__ = [
     # Indicators
     "OrderBlockDetector",
@@ -46,6 +55,12 @@ __all__ = [
     # Strategy
     "OrderBlockStrategy",
     "OrderBlockStrategyConfig",
+    # Reporting
+    "TradeRecord",
+    "PerformanceMetrics",
+    "PerformanceCalculator",
+    "HTMLReportGenerator",
+    "ReportManager",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"

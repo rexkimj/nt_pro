@@ -1,0 +1,698 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Block Strategy - Backtest Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.8em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .metric-value.positive {
+            color: #10b981;
+        }
+
+        .metric-value.negative {
+            color: #ef4444;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .highlight-box h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .highlight-box .value {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .config-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .trade-long {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .trade-short {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Order Block Strategy</h1>
+            <p>Backtest Performance Report</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Generated: 2025-11-17 10:14:07</p>
+        </header>
+
+        <div class="content">
+            <!-- Overall Results -->
+            <div class="section">
+                <div class="highlight-box">
+                    <h3>총 손익</h3>
+                    <div class="value" style="color: green;">
+                        $82,696.32 (+82.70%)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="section">
+                <h2>🎯 핵심 지표</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">총 거래</div>
+                        <div class="metric-value">50</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">승률</div>
+                        <div class="metric-value positive">62.0%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Profit Factor</div>
+                        <div class="metric-value positive">4.76</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Sharpe Ratio</div>
+                        <div class="metric-value positive">11.16</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Win/Loss Stats -->
+            <div class="section">
+                <h2>📈 승/패 통계</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">승리 거래</div>
+                        <div class="metric-value positive">31</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">패배 거래</div>
+                        <div class="metric-value negative">19</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">평균 승리</div>
+                        <div class="metric-value positive">$3,377.06</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">평균 패배</div>
+                        <div class="metric-value negative">$-1,157.51</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">최대 승리</div>
+                        <div class="metric-value positive">$5,546.87</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">최대 패배</div>
+                        <div class="metric-value negative">$-1,492.72</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Metrics -->
+            <div class="section">
+                <h2>⚠️ 리스크 지표</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">최대 낙폭 (DD)</div>
+                        <div class="metric-value negative">$2,345.00 (1.43%)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">평균 R:R</div>
+                        <div class="metric-value">1.54</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Expectancy</div>
+                        <div class="metric-value positive">$1653.93</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">연속 승리 (최대)</div>
+                        <div class="metric-value">7</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trade Duration -->
+            <div class="section">
+                <h2>⏱️ 거래 기간</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">평균 기간</div>
+                        <div class="metric-value">1639 min</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">최장 기간</div>
+                        <div class="metric-value">2856 min</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">최단 기간</div>
+                        <div class="metric-value">29 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Performance -->
+            <div class="section">
+                <h2>📅 월별 성과</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">최고 월</div>
+                        <div class="metric-value positive">$45,085.89</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">최악 월</div>
+                        <div class="metric-value negative">$37,610.43</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">평균 월 수익</div>
+                        <div class="metric-value">$41,348.16</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="section">
+                <h2>📝 최근 거래 (최대 20개)</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>진입 시간</th>
+                                <th>청산 시간</th>
+                                <th>방향</th>
+                                <th>진입가</th>
+                                <th>청산가</th>
+                                <th>수량</th>
+                                <th>손익</th>
+                                <th>손익%</th>
+                                <th>R:R</th>
+                                <th>종료</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr>
+                                <td>2024-12-14 21:14:07</td>
+                                <td>2024-12-16 09:44:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.08787</td>
+                                <td>1.12989</td>
+                                <td>119015.24</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$5,001.32</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+3.86%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-14 14:14:07</td>
+                                <td>2024-12-16 06:15:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08603</td>
+                                <td>1.09881</td>
+                                <td>95177.44</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,215.59</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-1.18%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-14 06:14:07</td>
+                                <td>2024-12-14 21:25:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08100</td>
+                                <td>1.06016</td>
+                                <td>109931.06</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$2,290.98</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+1.93%</td>
+                                <td>2.00</td>
+                                <td>TP1</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-13 06:14:07</td>
+                                <td>2024-12-15 05:30:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08338</td>
+                                <td>1.09261</td>
+                                <td>95170.74</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-878.08</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.85%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-12 12:14:07</td>
+                                <td>2024-12-14 05:11:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.07698</td>
+                                <td>1.12239</td>
+                                <td>114214.58</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$5,186.50</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+4.22%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-12 03:14:07</td>
+                                <td>2024-12-13 03:09:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.07665</td>
+                                <td>1.08688</td>
+                                <td>115304.48</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,179.58</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.95%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-11 03:14:07</td>
+                                <td>2024-12-12 15:47:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.07925</td>
+                                <td>1.10223</td>
+                                <td>99345.53</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$2,282.97</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+2.13%</td>
+                                <td>2.00</td>
+                                <td>TP1</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-10 08:14:07</td>
+                                <td>2024-12-12 01:48:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.09321</td>
+                                <td>1.08282</td>
+                                <td>80206.11</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-833.31</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.95%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-09 15:14:07</td>
+                                <td>2024-12-11 12:27:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.09170</td>
+                                <td>1.07128</td>
+                                <td>107994.92</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$2,205.62</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+1.87%</td>
+                                <td>2.00</td>
+                                <td>TP1</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-09 09:14:07</td>
+                                <td>2024-12-09 10:00:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.08639</td>
+                                <td>1.12537</td>
+                                <td>88452.60</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$3,448.64</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+3.59%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-09 02:14:07</td>
+                                <td>2024-12-11 01:50:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.08378</td>
+                                <td>1.07104</td>
+                                <td>109847.84</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,400.38</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-1.18%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-08 18:14:07</td>
+                                <td>2024-12-09 16:47:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.09225</td>
+                                <td>1.05181</td>
+                                <td>101284.78</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$4,095.58</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+3.70%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-07 19:14:07</td>
+                                <td>2024-12-09 07:06:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08969</td>
+                                <td>1.10071</td>
+                                <td>106360.65</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,171.99</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-1.01%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-07 05:14:07</td>
+                                <td>2024-12-07 08:01:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.07691</td>
+                                <td>1.06668</td>
+                                <td>113339.40</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,158.88</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.95%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-06 21:14:07</td>
+                                <td>2024-12-07 21:56:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08448</td>
+                                <td>1.03633</td>
+                                <td>81946.72</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$3,945.10</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+4.44%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-06 08:14:07</td>
+                                <td>2024-12-07 05:54:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.09329</td>
+                                <td>1.10409</td>
+                                <td>107130.85</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,157.42</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.99%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-05 18:14:07</td>
+                                <td>2024-12-06 16:44:07</td>
+                                <td class="trade-short">SHORT</td>
+                                <td>1.08233</td>
+                                <td>1.09261</td>
+                                <td>115540.67</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,187.58</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.95%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-05 07:14:07</td>
+                                <td>2024-12-06 04:15:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.07569</td>
+                                <td>1.11657</td>
+                                <td>114245.61</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$4,670.73</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+3.80%</td>
+                                <td>4.00</td>
+                                <td>TP2</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-05 03:14:07</td>
+                                <td>2024-12-06 03:25:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.09007</td>
+                                <td>1.08128</td>
+                                <td>118047.33</td>
+                                <td class="metric-value negative" style="font-size: 1em;">$-1,038.13</td>
+                                <td class="metric-value negative" style="font-size: 1em;">-0.81%</td>
+                                <td>-1.00</td>
+                                <td>SL</td>
+                            </tr>
+
+                            <tr>
+                                <td>2024-12-04 22:14:07</td>
+                                <td>2024-12-05 00:26:07</td>
+                                <td class="trade-long">LONG</td>
+                                <td>1.09169</td>
+                                <td>1.11201</td>
+                                <td>116594.74</td>
+                                <td class="metric-value positive" style="font-size: 1em;">$2,369.13</td>
+                                <td class="metric-value positive" style="font-size: 1em;">+1.86%</td>
+                                <td>2.00</td>
+                                <td>TP1</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Configuration -->
+            <div class="section">
+                <h2>⚙️ 전략 설정</h2>
+
+                <div class="config-item">
+                    <span class="config-label">Instrument</span>
+                    <span>EUR/USD</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">HTF Timeframe</span>
+                    <span>4-HOUR</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">LTF Timeframe</span>
+                    <span>15-MINUTE</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Starting Balance</span>
+                    <span>$100,000.00</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Position Size</span>
+                    <span>100,000 units</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">OB Swing Lookback</span>
+                    <span>5</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Stop Loss</span>
+                    <span>1.0%</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">TP1 (1:2)</span>
+                    <span>50% close</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">TP2 (1:4)</span>
+                    <span>Trailing stop</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Trailing Distance</span>
+                    <span>20 pips</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Daily Max Loss</span>
+                    <span>2.0%</span>
+                </div>
+
+                <div class="config-item">
+                    <span class="config-label">Fibonacci Filter</span>
+                    <span>Enabled</span>
+                </div>
+
+            </div>
+
+            <!-- Warning -->
+            <div class="warning">
+                <strong>⚠️ 면책조항:</strong> 이 백테스트 결과는 과거 데이터를 기반으로 한 것이며, 미래 수익을 보장하지 않습니다.
+                실제 트레이딩은 상당한 손실 위험이 있습니다. 항상 적절한 리스크 관리를 사용하고,
+                라이브 트레이딩 전에 충분히 테스트하세요.
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Order Block Strategy</strong> - Powered by Nautilus Trader</p>
+            <p>Report generated: {timestamp}</p>
+        </div>
+    </div>
+</body>
+</html>
