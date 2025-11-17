@@ -33,7 +33,11 @@ from .indicators import (
     LiquiditySweepDetector,
     CHoCHDetector,
     FibonacciCalculator,
+    TrendLineDetector,
+    ChannelDetector,
     OrderBlock,
+    TrendLine,
+    Channel,
 )
 
 
@@ -63,8 +67,23 @@ class OrderBlockStrategyConfig(StrategyConfig):
     # CHoCH detection parameters
     choch_swing_lookback: int = 5
 
+    # Trend Line detection parameters
+    tl_min_touches: int = 2
+    tl_max_lines: int = 10
+    tl_touch_tolerance_pips: float = 5.0
+    tl_min_bars_between_touches: int = 3
+
+    # Channel detection parameters
+    ch_min_touches: int = 4
+    ch_max_channels: int = 5
+    ch_parallel_tolerance: float = 0.15
+    ch_min_width_pips: float = 20.0
+    ch_max_width_pips: float = 500.0
+
     # Entry parameters
     use_fibonacci_filter: bool = True  # Only enter in 0.5-0.618 zone
+    use_trend_line_filter: bool = True  # Filter entries based on trend lines
+    use_channel_filter: bool = True  # Filter entries based on channels
     max_bars_since_choch: int = 10
 
     # Risk management parameters
@@ -116,6 +135,8 @@ class OrderBlockStrategy(Strategy):
 
         # Entry parameters
         self.use_fibonacci_filter = config.use_fibonacci_filter
+        self.use_trend_line_filter = config.use_trend_line_filter
+        self.use_channel_filter = config.use_channel_filter
         self.max_bars_since_choch = config.max_bars_since_choch
         self.log_signals = config.log_signals
 
@@ -129,6 +150,21 @@ class OrderBlockStrategy(Strategy):
         self.htf_liquidity_sweep = LiquiditySweepDetector(
             lookback=config.ls_lookback,
             reversal_pips=config.ls_reversal_pips,
+        )
+
+        # Initialize Trend Line and Channel detectors
+        self.htf_trendline_detector = TrendLineDetector(
+            min_touches=config.tl_min_touches,
+            max_lines=config.tl_max_lines,
+            touch_tolerance_pips=config.tl_touch_tolerance_pips,
+            min_bars_between_touches=config.tl_min_bars_between_touches,
+        )
+        self.htf_channel_detector = ChannelDetector(
+            min_channel_touches=config.ch_min_touches,
+            max_channels=config.ch_max_channels,
+            parallel_tolerance=config.ch_parallel_tolerance,
+            min_channel_width_pips=config.ch_min_width_pips,
+            max_channel_width_pips=config.ch_max_width_pips,
         )
 
         # Initialize LTF indicators (for entry confirmation)
@@ -191,12 +227,20 @@ class OrderBlockStrategy(Strategy):
     def _on_htf_bar(self, bar: Bar) -> None:
         """
         Process Higher TimeFrame (H4/D1) bar.
-        Updates Order Blocks, FVG, and Liquidity Sweep detectors.
+        Updates Order Blocks, FVG, Liquidity Sweep, Trend Lines, and Channels detectors.
         """
         # Update all HTF detectors
         new_ob = self.htf_ob_detector.update(bar)
         new_fvg = self.htf_fvg_detector.update(bar)
         sweep = self.htf_liquidity_sweep.update(bar)
+
+        # Update trend line detector (pass swing points from OB detector)
+        swing_points = self.htf_ob_detector.swing_highs + self.htf_ob_detector.swing_lows
+        latest_swing = swing_points[-1] if swing_points else None
+        new_trend_lines = self.htf_trendline_detector.update(bar, latest_swing)
+
+        # Update channel detector
+        new_channels = self.htf_channel_detector.update(self.htf_trendline_detector)
 
         # Log new detections
         if new_ob and self.log_signals:
@@ -213,6 +257,22 @@ class OrderBlockStrategy(Strategy):
 
         if sweep and self.log_signals:
             self.log.info(f"[HTF] Liquidity Sweep: {sweep}")
+
+        # Log trend lines
+        if new_trend_lines and self.log_signals:
+            for tl in new_trend_lines:
+                self.log.info(
+                    f"[HTF] New Trend Line: {tl.type} {tl.direction} "
+                    f"touches={tl.touch_count}, strength={tl.strength:.2f}"
+                )
+
+        # Log channels
+        if new_channels and self.log_signals:
+            for ch in new_channels:
+                self.log.info(
+                    f"[HTF] New Channel: {ch.direction} "
+                    f"width={ch.width*10000:.1f} pips, strength={ch.strength:.2f}"
+                )
 
     def _on_ltf_bar(self, bar: Bar) -> None:
         """
@@ -292,6 +352,50 @@ class OrderBlockStrategy(Strategy):
                         self.log.debug("Price not in Fibonacci golden zone")
                     return False
 
+        # Trend Line filter (optional)
+        if self.use_trend_line_filter:
+            # Check if price is near a support trend line (bullish signal)
+            support_lines = self.htf_trendline_detector.get_active_trend_lines('support')
+            current_bar_index = len(self.htf_trendline_detector.bars) - 1
+
+            near_support = False
+            for support in support_lines:
+                if self.htf_trendline_detector.is_price_near_line(
+                    current_price, support, current_bar_index, tolerance_pips=15.0
+                ):
+                    near_support = True
+                    if self.log_signals:
+                        self.log.debug(f"Price near support trend line (strength={support.strength:.2f})")
+                    break
+
+            if not near_support and support_lines:
+                if self.log_signals:
+                    self.log.debug("Price not near any support trend line")
+                return False
+
+        # Channel filter (optional)
+        if self.use_channel_filter:
+            # Check if price is in or near a channel
+            channels = self.htf_channel_detector.get_active_channels()
+            current_bar_index = len(self.htf_trendline_detector.bars) - 1
+
+            valid_channel_setup = False
+            for channel in channels:
+                # For long entries, prefer price near lower channel boundary (support)
+                if self.htf_channel_detector.is_near_channel_boundary(
+                    current_price, channel, current_bar_index, 'lower', tolerance_pips=15.0
+                ):
+                    valid_channel_setup = True
+                    if self.log_signals:
+                        self.log.debug(f"Price near lower channel boundary ({channel.direction} channel)")
+                    break
+
+            if not valid_channel_setup and channels:
+                if self.log_signals:
+                    self.log.debug("Price not in favorable channel position for long entry")
+                # Don't require channel filter if no channels detected
+                # return False
+
         # All conditions met!
         self.active_order_block = bullish_ob
         self.total_signals += 1
@@ -345,6 +449,50 @@ class OrderBlockStrategy(Strategy):
                     if self.log_signals:
                         self.log.debug("Price not in Fibonacci golden zone")
                     return False
+
+        # Trend Line filter (optional)
+        if self.use_trend_line_filter:
+            # Check if price is near a resistance trend line (bearish signal)
+            resistance_lines = self.htf_trendline_detector.get_active_trend_lines('resistance')
+            current_bar_index = len(self.htf_trendline_detector.bars) - 1
+
+            near_resistance = False
+            for resistance in resistance_lines:
+                if self.htf_trendline_detector.is_price_near_line(
+                    current_price, resistance, current_bar_index, tolerance_pips=15.0
+                ):
+                    near_resistance = True
+                    if self.log_signals:
+                        self.log.debug(f"Price near resistance trend line (strength={resistance.strength:.2f})")
+                    break
+
+            if not near_resistance and resistance_lines:
+                if self.log_signals:
+                    self.log.debug("Price not near any resistance trend line")
+                return False
+
+        # Channel filter (optional)
+        if self.use_channel_filter:
+            # Check if price is in or near a channel
+            channels = self.htf_channel_detector.get_active_channels()
+            current_bar_index = len(self.htf_trendline_detector.bars) - 1
+
+            valid_channel_setup = False
+            for channel in channels:
+                # For short entries, prefer price near upper channel boundary (resistance)
+                if self.htf_channel_detector.is_near_channel_boundary(
+                    current_price, channel, current_bar_index, 'upper', tolerance_pips=15.0
+                ):
+                    valid_channel_setup = True
+                    if self.log_signals:
+                        self.log.debug(f"Price near upper channel boundary ({channel.direction} channel)")
+                    break
+
+            if not valid_channel_setup and channels:
+                if self.log_signals:
+                    self.log.debug("Price not in favorable channel position for short entry")
+                # Don't require channel filter if no channels detected
+                # return False
 
         # All conditions met!
         self.active_order_block = bearish_ob
